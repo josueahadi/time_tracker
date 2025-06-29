@@ -7,7 +7,7 @@ import '../models/task.dart';
 class ProjectTaskManagementScreen extends StatefulWidget {
   final int initialTab;
 
-  const ProjectTaskManagementScreen({super.key, this.initialTab = 0});
+  ProjectTaskManagementScreen({this.initialTab = 0});
 
   @override
   _ProjectTaskManagementScreenState createState() =>
@@ -36,7 +36,7 @@ class _ProjectTaskManagementScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage', style: TextStyle(color: Colors.white)),
+        title: Text(_getTitle(), style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF6A4C93),
         iconTheme: IconThemeData(color: Colors.white),
         bottom: TabBar(
@@ -53,6 +53,116 @@ class _ProjectTaskManagementScreenState
       body: TabBarView(
         controller: _tabController,
         children: [_ProjectsTab(), _TasksTab()],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_tabController!.index == 0) {
+            _showAddProjectDialog(context);
+          } else {
+            _showAddTaskDialog(context);
+          }
+        },
+        backgroundColor: Colors.amber,
+        child: Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  String _getTitle() {
+    if (_tabController == null) return 'Manage Projects';
+    return _tabController!.index == 0 ? 'Manage Projects' : 'Manage Tasks';
+  }
+
+  void _showAddProjectDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Project'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'Project Name',
+                hintText: 'Project 123',
+                border: UnderlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.blue)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                final project = Project(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: controller.text,
+                );
+                Provider.of<TimeEntryProvider>(
+                  context,
+                  listen: false,
+                ).addProject(project);
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Add', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddTaskDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Task'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: 'Task Name',
+                hintText: 'Task D',
+                border: UnderlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Colors.blue)),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                final task = Task(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: controller.text,
+                );
+                Provider.of<TimeEntryProvider>(
+                  context,
+                  listen: false,
+                ).addTask(task);
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Add', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
       ),
     );
   }
@@ -186,85 +296,23 @@ class _TasksTab extends StatelessWidget {
   }
 }
 
-// Add Project/Task Dialogs
-void showAddProjectDialog(BuildContext context) {
-  final controller = TextEditingController();
+// Add Project/Task Dialogs - These are now integrated into the main screen class above
 
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Add Project'),
-      content: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: 'Project Name',
-          border: OutlineInputBorder(),
-        ),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            if (controller.text.isNotEmpty) {
-              final project = Project(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                name: controller.text,
-              );
-              Provider.of<TimeEntryProvider>(
-                context,
-                listen: false,
-              ).addProject(project);
-              Navigator.pop(context);
-            }
-          },
-          child: Text('Add'),
-        ),
-      ],
-    ),
-  );
-}
+// Helper function to initialize sample data
+class SampleDataHelper {
+  static void initializeSampleData(TimeEntryProvider provider) {
+    if (provider.projects.isEmpty) {
+      // Add sample projects
+      provider.addProject(Project(id: "1", name: "Project Alpha"));
+      provider.addProject(Project(id: "2", name: "Project Beta"));
+      provider.addProject(Project(id: "3", name: "Project Gamma"));
+    }
 
-void showAddTaskDialog(BuildContext context) {
-  final controller = TextEditingController();
-
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Add Task'),
-      content: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: 'Task Name',
-          border: OutlineInputBorder(),
-        ),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            if (controller.text.isNotEmpty) {
-              final task = Task(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                name: controller.text,
-              );
-              Provider.of<TimeEntryProvider>(
-                context,
-                listen: false,
-              ).addTask(task);
-              Navigator.pop(context);
-            }
-          },
-          child: Text('Add'),
-        ),
-      ],
-    ),
-  );
+    if (provider.tasks.isEmpty) {
+      // Add sample tasks
+      provider.addTask(Task(id: "1", name: "Task A"));
+      provider.addTask(Task(id: "2", name: "Task B"));
+      provider.addTask(Task(id: "3", name: "Task C"));
+    }
+  }
 }
