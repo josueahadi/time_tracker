@@ -7,7 +7,7 @@ import '../models/task.dart';
 class ProjectTaskManagementScreen extends StatefulWidget {
   final int initialTab;
 
-  ProjectTaskManagementScreen({this.initialTab = 0});
+  const ProjectTaskManagementScreen({super.key, this.initialTab = 0});
 
   @override
   _ProjectTaskManagementScreenState createState() =>

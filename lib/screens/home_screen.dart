@@ -7,6 +7,8 @@ import 'add_time_entry_screen.dart';
 import 'project_task_management_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }

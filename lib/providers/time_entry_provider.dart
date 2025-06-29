@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:localstorage/localstorage.dart';
+import 'dart:convert';
 import '../models/project.dart';
 import '../models/task.dart';
 import '../models/time_entry.dart';
 
 class TimeEntryProvider with ChangeNotifier {
-  final LocalStorage _storage = LocalStorage('time_tracker');
-
   List<Project> _projects = [];
   List<Task> _tasks = [];
   List<TimeEntry> _timeEntries = [];
@@ -20,26 +19,25 @@ class TimeEntryProvider with ChangeNotifier {
   }
 
   Future<void> _loadData() async {
-    await _storage.ready;
-
     // Load projects
-    final projectsData = _storage.getItem('projects');
+    final projectsData = localStorage.getItem('time_tracker_projects');
     if (projectsData != null) {
-      _projects = (projectsData as List)
-          .map((json) => Project.fromJson(json))
-          .toList();
+      final List<dynamic> projectsList = jsonDecode(projectsData);
+      _projects = projectsList.map((json) => Project.fromJson(json)).toList();
     }
 
     // Load tasks
-    final tasksData = _storage.getItem('tasks');
+    final tasksData = localStorage.getItem('time_tracker_tasks');
     if (tasksData != null) {
-      _tasks = (tasksData as List).map((json) => Task.fromJson(json)).toList();
+      final List<dynamic> tasksList = jsonDecode(tasksData);
+      _tasks = tasksList.map((json) => Task.fromJson(json)).toList();
     }
 
     // Load time entries
-    final timeEntriesData = _storage.getItem('timeEntries');
+    final timeEntriesData = localStorage.getItem('time_tracker_time_entries');
     if (timeEntriesData != null) {
-      _timeEntries = (timeEntriesData as List)
+      final List<dynamic> timeEntriesList = jsonDecode(timeEntriesData);
+      _timeEntries = timeEntriesList
           .map((json) => TimeEntry.fromJson(json))
           .toList();
     }
@@ -48,21 +46,20 @@ class TimeEntryProvider with ChangeNotifier {
   }
 
   Future<void> _saveProjects() async {
-    await _storage.setItem(
-      'projects',
-      _projects.map((p) => p.toJson()).toList(),
-    );
+    final projectsJson = jsonEncode(_projects.map((p) => p.toJson()).toList());
+    localStorage.setItem('time_tracker_projects', projectsJson);
   }
 
   Future<void> _saveTasks() async {
-    await _storage.setItem('tasks', _tasks.map((t) => t.toJson()).toList());
+    final tasksJson = jsonEncode(_tasks.map((t) => t.toJson()).toList());
+    localStorage.setItem('time_tracker_tasks', tasksJson);
   }
 
   Future<void> _saveTimeEntries() async {
-    await _storage.setItem(
-      'timeEntries',
+    final timeEntriesJson = jsonEncode(
       _timeEntries.map((te) => te.toJson()).toList(),
     );
+    localStorage.setItem('time_tracker_time_entries', timeEntriesJson);
   }
 
   // Project methods

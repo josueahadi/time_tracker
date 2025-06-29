@@ -7,6 +7,8 @@ import '../models/project.dart';
 import '../models/task.dart';
 
 class AddTimeEntryScreen extends StatefulWidget {
+  const AddTimeEntryScreen({super.key});
+
   @override
   _AddTimeEntryScreenState createState() => _AddTimeEntryScreenState();
 }
