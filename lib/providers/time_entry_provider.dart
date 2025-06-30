@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/project.dart';
 import '../models/task.dart';
@@ -19,22 +19,24 @@ class TimeEntryProvider with ChangeNotifier {
   }
 
   Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+
     // Load projects
-    final projectsData = localStorage.getItem('time_tracker_projects');
+    final projectsData = prefs.getString('time_tracker_projects');
     if (projectsData != null) {
       final List<dynamic> projectsList = jsonDecode(projectsData);
       _projects = projectsList.map((json) => Project.fromJson(json)).toList();
     }
 
     // Load tasks
-    final tasksData = localStorage.getItem('time_tracker_tasks');
+    final tasksData = prefs.getString('time_tracker_tasks');
     if (tasksData != null) {
       final List<dynamic> tasksList = jsonDecode(tasksData);
       _tasks = tasksList.map((json) => Task.fromJson(json)).toList();
     }
 
     // Load time entries
-    final timeEntriesData = localStorage.getItem('time_tracker_time_entries');
+    final timeEntriesData = prefs.getString('time_tracker_time_entries');
     if (timeEntriesData != null) {
       final List<dynamic> timeEntriesList = jsonDecode(timeEntriesData);
       _timeEntries = timeEntriesList
@@ -42,24 +44,54 @@ class TimeEntryProvider with ChangeNotifier {
           .toList();
     }
 
+    // Initialize sample data if no data exists
+    if (_projects.isEmpty && _tasks.isEmpty && _timeEntries.isEmpty) {
+      await _initializeSampleData();
+    }
+
     notifyListeners();
   }
 
   Future<void> _saveProjects() async {
+    final prefs = await SharedPreferences.getInstance();
     final projectsJson = jsonEncode(_projects.map((p) => p.toJson()).toList());
-    localStorage.setItem('time_tracker_projects', projectsJson);
+    await prefs.setString('time_tracker_projects', projectsJson);
   }
 
   Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
     final tasksJson = jsonEncode(_tasks.map((t) => t.toJson()).toList());
-    localStorage.setItem('time_tracker_tasks', tasksJson);
+    await prefs.setString('time_tracker_tasks', tasksJson);
   }
 
   Future<void> _saveTimeEntries() async {
+    final prefs = await SharedPreferences.getInstance();
     final timeEntriesJson = jsonEncode(
       _timeEntries.map((te) => te.toJson()).toList(),
     );
-    localStorage.setItem('time_tracker_time_entries', timeEntriesJson);
+    await prefs.setString('time_tracker_time_entries', timeEntriesJson);
+  }
+
+  Future<void> _initializeSampleData() async {
+    // Add sample projects
+    final sampleProjects = [
+      Project(id: '1', name: 'Project Alpha', isDefault: false),
+      Project(id: '2', name: 'Project Beta', isDefault: false),
+      Project(id: '3', name: 'Project Gamma', isDefault: false),
+    ];
+
+    // Add sample tasks
+    final sampleTasks = [
+      Task(id: '1', name: 'Task A'),
+      Task(id: '2', name: 'Task B'),
+      Task(id: '3', name: 'Task C'),
+    ];
+
+    _projects.addAll(sampleProjects);
+    _tasks.addAll(sampleTasks);
+
+    await _saveProjects();
+    await _saveTasks();
   }
 
   // Project methods
